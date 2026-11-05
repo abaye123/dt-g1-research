@@ -1,0 +1,32 @@
+# === Downloaded dependencies (reinstall; see docs/DT-G1-notes) ===
+**/node_modules/
+**/pylibs/
+# The community tools (downloaded binaries). Get them from the PurrLaunch GitHub release.
+tools/purrlaunch_v1.2.2/
+# The Glyphix CLI is an npm install (keep package.json, drop the installed binaries).
+tools/glyphix-toolchain/node_modules/
+
+# === Downloaded standalone binaries ===
+*.exe
+
+# === Backups: contain vendor secret keys (APIConfig.json), third-party apps,
+#     and device/user data. Never commit. Kept locally only. ===
+backup/
+
+# === Build output ===
+**/.glyphix-work/
+
+# === Stray screen captures / photos at the repo root ===
+/*.jpg
+/*.jpeg
+/*.png
+
+# === Firmware images and raw flash dumps (never commit) ===
+*.fw
+*.ota.bin
+ref_fw*/
+
+# === OS / editor noise ===
+Thumbs.db
+desktop.ini
+.DS_Store

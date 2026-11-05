@@ -1,0 +1,23 @@
+description: DT G1 C175R 466x466 circle AMOLED
+
+vendorID: 0x0102
+productID: 0x0005
+
+screen:
+  width: 466 # pixels
+  height: 466 # pixels
+  dpi: 326 # pixels per inch
+  shape: circle # screen shape
+
+ui:
+  font-family: sans-serif
+  font-size: 32 # px
+  font-map: true
+
+javascript-compiler: glyphix-jsc
+image-build: image-convert-pal.scm
+
+emulator:
+  launcher: launcher
+  global-assets: default-global
+  surface: surface/surface-466x466.json

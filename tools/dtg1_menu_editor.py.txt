@@ -1,0 +1,325 @@
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+import struct
+import os
+import sys
+import re
+
+# Строгие константы структуры бинарника диспетчера меню Glyphix OS
+ENTRY_SIZE = 16
+MAX_ENTRIES = 100
+TOTAL_SIZE = 1600
+PACK_FORMAT = '<IIII' # Little Endian: AppID(4), IconID(4), NameID(4), Flags(4)
+
+# Дефолтные безопасные ассеты иконки и имени для предотвращения Hard Fault при вызове рендера
+DEFAULT_ICON_ID = 0x004EDA41
+DEFAULT_NAME_ID = 0x00000DF2
+
+def resolve_resource_path(relative_path):
+    """
+    Динамический резолвер путей к файлам ресурсов.
+    Обеспечивает отказоустойчивость при работе из скрипта Python и из скомпилированного .exe (PyInstaller).
+    """
+    # 1. Если приложение скомпилировано в PyInstaller
+    if getattr(sys, 'frozen', False):
+        # Проверка временной директории --onefile (вшитые ресурсы)
+        if hasattr(sys, '_MEIPASS'):
+            bundled_path = os.path.join(sys._MEIPASS, relative_path)
+            if os.path.exists(bundled_path):
+                return bundled_path
+        
+        # Проверка директории, в которой физически расположен .exe файл (внешние ресурсы)
+        exe_dir = os.path.dirname(sys.executable)
+        exe_path = os.path.join(exe_dir, relative_path)
+        if os.path.exists(exe_path):
+            return exe_path
+
+    # 2. Проверка локальной директории скрипта .py (режим разработки)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(script_dir, relative_path)
+    if os.path.exists(script_path):
+        return script_path
+
+    # 3. Fallback на текущую рабочую директорию
+    return relative_path
+
+class MenuEntry:
+    """Класс-контейнер для хранения распарсенного слота menu_list.cfg"""
+    def __init__(self, app_id=0, icon_id=0, name_id=0, flags=0):
+        self.app_id = app_id
+        self.icon_id = icon_id
+        self.name_id = name_id
+        self.flags = flags
+
+    def is_empty(self):
+        return self.app_id == 0 and self.icon_id == 0 and self.name_id == 0
+
+class AddEditDialog(tk.Toplevel):
+    """Модальное диалоговое окно добавления / редактирования параметров слота меню"""
+    def __init__(self, parent, app_db, entry=None):
+        super().__init__(parent)
+        self.title("Add / Edit Slot Parameters")
+        self.geometry("450x260")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
+
+        self.app_db = app_db
+        self.result = None
+
+        init_app_id = entry.app_id if entry and not entry.is_empty() else 0xC82C
+        init_icon_id = entry.icon_id if entry and entry.icon_id != 0 else DEFAULT_ICON_ID
+        init_name_id = entry.name_id if entry and entry.name_id != 0 else DEFAULT_NAME_ID
+        init_flags = entry.flags if entry else 1
+
+        self.combo_options = []
+        self.app_id_map = {}
+        for app_id, name in sorted(self.app_db.items()):
+            label = f"0x{app_id:04X} - {name}"
+            self.combo_options.append(label)
+            self.app_id_map[label] = app_id
+
+        frame = ttk.Frame(self, padding=10)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(frame, text="App Target (AppID):").grid(row=0, column=0, sticky=tk.W, pady=5)
+        self.app_combo = ttk.Combobox(frame, values=self.combo_options, width=40)
+        self.app_combo.grid(row=0, column=1, pady=5, padx=5)
+
+        current_label = f"0x{init_app_id:04X} - {self.app_db.get(init_app_id, '')}".strip(" -")
+        self.app_combo.set(current_label)
+
+        ttk.Label(frame, text="Icon Asset ID (Hex):").grid(row=1, column=0, sticky=tk.W, pady=5)
+        self.icon_entry = ttk.Entry(frame, width=43)
+        self.icon_entry.insert(0, f"0x{init_icon_id:08X}")
+        self.icon_entry.grid(row=1, column=1, pady=5, padx=5)
+
+        ttk.Label(frame, text="Name String ID (Hex):").grid(row=2, column=0, sticky=tk.W, pady=5)
+        self.name_entry = ttk.Entry(frame, width=43)
+        self.name_entry.insert(0, f"0x{init_name_id:08X}")
+        self.name_entry.grid(row=2, column=1, pady=5, padx=5)
+
+        ttk.Label(frame, text="Visibility Flag:").grid(row=3, column=0, sticky=tk.W, pady=5)
+        self.flag_var = tk.IntVar(value=init_flags)
+        ttk.Checkbutton(frame, text="Visible in UI (1)", variable=self.flag_var).grid(row=3, column=1, sticky=tk.W, pady=5, padx=5)
+
+        btn_box = ttk.Frame(frame)
+        btn_box.grid(row=4, column=0, columnspan=2, pady=15)
+        ttk.Button(btn_box, text="Apply", command=self.on_apply).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_box, text="Cancel", command=self.destroy).pack(side=tk.LEFT, padx=5)
+
+    def on_apply(self):
+        combo_val = self.app_combo.get().strip()
+        
+        if combo_val in self.app_id_map:
+            app_id = self.app_id_map[combo_val]
+        else:
+            try:
+                raw_hex = combo_val.split()[0]
+                app_id = int(raw_hex, 16)
+            except ValueError:
+                messagebox.showerror("Validation Error", "Некорректный формат AppID (ожидается Hex, например 0xC82C).", parent=self)
+                return
+
+        try:
+            icon_id = int(self.icon_entry.get().strip(), 16)
+            name_id = int(self.name_entry.get().strip(), 16)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Значения IconID и NameID должны быть Hex-числами (например 0x004EDA41).", parent=self)
+            return
+
+        flags = self.flag_var.get()
+        self.result = MenuEntry(app_id, icon_id, name_id, flags)
+        self.destroy()
+
+class MenuCfgEditor(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("DT G1 Menu Cfg Editor (Glyphix OS)")
+        self.geometry("900x600")
+        
+        self.entries = []
+        self.app_db = {}
+        
+        # Вызов с разрешением динамеческих путей среды PyInstaller
+        target_csv_path = resolve_resource_path("AppID_mapping.csv")
+        self.load_app_db(target_csv_path)
+        
+        self.create_widgets()
+
+    def load_app_db(self, filepath):
+        """Парсинг таблицы маппинга AppID из указанного абсолютного пути"""
+        if not os.path.exists(filepath):
+            messagebox.showwarning("Warning", f"Файл базы маппинга не найден по пути:\n{filepath}\n\nИмена приложений будут выводиться в формате Hex.")
+            return
+
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+                matches = re.findall(r"(0x[0-9A-Fa-f]{4});([^|\n]+)", content)
+                for hex_str, name in matches:
+                    app_id = int(hex_str, 16)
+                    self.app_db[app_id] = name.strip()
+                    
+            print(f"[INFO] Успешно загружено {len(self.app_db)} записей из {filepath}")
+        except Exception as e:
+            messagebox.showerror("Parse Error", f"Ошибка при парсинге {filepath}:\n{e}")
+
+    def get_app_name(self, app_id):
+        if app_id == 0:
+            return "<EMPTY SLOT>"
+        return self.app_db.get(app_id, f"Unknown (0x{app_id:04X})")
+
+    def create_widgets(self):
+        toolbar = tk.Frame(self)
+        toolbar.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+
+        tk.Button(toolbar, text="Load menu_list.cfg", command=self.load_file).pack(side=tk.LEFT, padx=2)
+        tk.Button(toolbar, text="Save menu_list.cfg", command=self.save_file).pack(side=tk.LEFT, padx=2)
+        
+        ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, padx=5, fill=tk.Y)
+        
+        tk.Button(toolbar, text="Add / Edit Slot", command=self.edit_or_add_slot, bg="#e1f5fe").pack(side=tk.LEFT, padx=4)
+        tk.Button(toolbar, text="Move Up", command=self.move_up).pack(side=tk.LEFT, padx=2)
+        tk.Button(toolbar, text="Move Down", command=self.move_down).pack(side=tk.LEFT, padx=2)
+        tk.Button(toolbar, text="Toggle Visible", command=self.toggle_visibility).pack(side=tk.LEFT, padx=2)
+        tk.Button(toolbar, text="Clear & Move to End", command=self.delete_item).pack(side=tk.LEFT, padx=2)
+
+        columns = ("index", "name", "appid", "iconid", "nameid", "visible")
+        self.tree = ttk.Treeview(self, columns=columns, show="headings", selectmode="browse")
+        
+        self.tree.heading("index", text="Idx")
+        self.tree.heading("name", text="App Name")
+        self.tree.heading("appid", text="AppID (Hex)")
+        self.tree.heading("iconid", text="IconID (Hex)")
+        self.tree.heading("nameid", text="NameID (Hex)")
+        self.tree.heading("visible", text="Visible")
+
+        self.tree.column("index", width=40, anchor=tk.CENTER)
+        self.tree.column("name", width=320)
+        self.tree.column("appid", width=100, anchor=tk.CENTER)
+        self.tree.column("iconid", width=100, anchor=tk.CENTER)
+        self.tree.column("nameid", width=100, anchor=tk.CENTER)
+        self.tree.column("visible", width=80, anchor=tk.CENTER)
+
+        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscroll=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tree.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    def refresh_tree(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        for idx, entry in enumerate(self.entries):
+            vis_str = "YES" if entry.flags == 1 else "NO (0)"
+            tags = ("empty",) if entry.is_empty() else ()
+            
+            self.tree.insert("", "end", values=(
+                idx,
+                self.get_app_name(entry.app_id),
+                f"0x{entry.app_id:08X}",
+                f"0x{entry.icon_id:08X}",
+                f"0x{entry.name_id:08X}",
+                vis_str
+            ), tags=tags)
+            
+        self.tree.tag_configure("empty", foreground="gray")
+
+    def edit_or_add_slot(self):
+        if not self.entries:
+            messagebox.showwarning("Warning", "Сначала загрузите файл menu_list.cfg!")
+            return
+
+        idx = self.get_selected_index()
+        if idx is None:
+            for i, entry in enumerate(self.entries):
+                if entry.is_empty():
+                    idx = i
+                    break
+            if idx is None:
+                messagebox.showwarning("Warning", "Все 100 слотов заполнены. Выберите слот для перезаписи.")
+                return
+
+        current_entry = self.entries[idx]
+        dialog = AddEditDialog(self, self.app_db, current_entry)
+        self.wait_window(dialog)
+
+        if dialog.result is not None:
+            self.entries[idx] = dialog.result
+            self.refresh_tree()
+            self.tree.selection_set(self.tree.get_children()[idx])
+
+    def load_file(self):
+        filepath = filedialog.askopenfilename(filetypes=[("CFG Files", "*.cfg"), ("All Files", "*.*")])
+        if not filepath:
+            return
+
+        file_size = os.path.getsize(filepath)
+        if file_size != TOTAL_SIZE:
+            messagebox.showerror("Error", f"Некорректный размер дампа!\nОжидается: {TOTAL_SIZE} байт.\nПолучено: {file_size} байт.")
+            return
+
+        self.entries.clear()
+        with open(filepath, "rb") as f:
+            for _ in range(MAX_ENTRIES):
+                data = f.read(ENTRY_SIZE)
+                app_id, icon_id, name_id, flags = struct.unpack(PACK_FORMAT, data)
+                self.entries.append(MenuEntry(app_id, icon_id, name_id, flags))
+        
+        self.refresh_tree()
+
+    def save_file(self):
+        if len(self.entries) != MAX_ENTRIES:
+            messagebox.showerror("Error", "Критическая ошибка: нарушена длина массива слотов (не равно 100).")
+            return
+
+        filepath = filedialog.asksaveasfilename(defaultextension=".cfg", filetypes=[("CFG Files", "*.cfg")])
+        if not filepath:
+            return
+
+        with open(filepath, "wb") as f:
+            for entry in self.entries:
+                data = struct.pack(PACK_FORMAT, entry.app_id, entry.icon_id, entry.name_id, entry.flags)
+                f.write(data)
+        
+        messagebox.showinfo("Success", "Файл menu_list.cfg успешно записан.")
+
+    def get_selected_index(self):
+        selected = self.tree.selection()
+        if not selected:
+            return None
+        return self.tree.index(selected[0])
+
+    def move_up(self):
+        idx = self.get_selected_index()
+        if idx is not None and idx > 0:
+            self.entries[idx - 1], self.entries[idx] = self.entries[idx], self.entries[idx - 1]
+            self.refresh_tree()
+            self.tree.selection_set(self.tree.get_children()[idx - 1])
+
+    def move_down(self):
+        idx = self.get_selected_index()
+        if idx is not None and idx < MAX_ENTRIES - 1:
+            self.entries[idx + 1], self.entries[idx] = self.entries[idx], self.entries[idx + 1]
+            self.refresh_tree()
+            self.tree.selection_set(self.tree.get_children()[idx + 1])
+
+    def toggle_visibility(self):
+        idx = self.get_selected_index()
+        if idx is not None:
+            self.entries[idx].flags = 1 if self.entries[idx].flags == 0 else 0
+            self.refresh_tree()
+            self.tree.selection_set(self.tree.get_children()[idx])
+
+    def delete_item(self):
+        idx = self.get_selected_index()
+        if idx is not None:
+            empty_entry = MenuEntry(0, 0, 0, 0)
+            self.entries.pop(idx)
+            self.entries.append(empty_entry)
+            self.refresh_tree()
+
+if __name__ == "__main__":
+    app = MenuCfgEditor()
+    app.mainloop()

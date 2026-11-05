@@ -1,0 +1,8 @@
+{
+  "apps": {
+    "com.xfaith.woodenfish": {
+      "uri": "pkg://com.xfaith.woodenfish"
+    }
+  },
+  "dials": {}
+}
