@@ -30,3 +30,7 @@ ref_fw*/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Python bytecode cache
+__pycache__/
+*.pyc
