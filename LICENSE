@@ -1,0 +1,49 @@
+DT G1 Research
+Personal Use and Share-Alike License, version 1.0
+
+Copyright (c) 2026 abaye. All rights reserved except as granted below.
+
+"The Work" means the notes, analysis, documentation, and tools in this repository, except the third-party
+material listed under "Third-party material". "Derived Work" means anything
+based on the Work, in whole or in part, including modified versions, updates,
+translations, ports, and tools or applications built on it.
+
+1. Personal use. You may use, copy, study, and modify the Work for your own
+   personal, non-commercial purposes, free of charge.
+
+2. Publishing changes. If you share a Derived Work with anyone, or let anyone
+   use it, by any means, you must publish its complete source code and
+   documentation, free of charge, in a public open repository, no later than
+   the day you first do so. The published Derived Work must be under this same
+   license, and must state what you changed. The same applies to every later
+   update of that Derived Work.
+
+3. No commercial use. You may not use the Work or a Derived Work for any
+   commercial purpose without prior written permission from the copyright
+   holder. Commercial purposes include selling it, charging for access to it or
+   for services based on it, including it in a paid product or service, using
+   it to promote a business, and using it in the course of paid work.
+   To request permission, contact the copyright holder through
+   https://github.com/abaye123.
+
+4. Attribution. Keep this license and the copyright notice in every copy, and
+   name the original project in every Derived Work.
+
+5. Termination. These rights end automatically if you breach this license.
+
+6. No warranty. THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED. THE COPYRIGHT HOLDER IS NOT LIABLE FOR ANY CLAIM, DAMAGE,
+   OR OTHER LIABILITY ARISING FROM THE WORK OR ITS USE, INCLUDING DAMAGE TO ANY
+   DEVICE.
+
+Third-party material
+
+The following is not covered by this license. It remains under the terms set
+by its own authors:
+
+- docs/reference/: third-party documents and their unofficial translations.
+  Each folder names its source and license. See the LICENSE files under each
+  original/ folder where they exist.
+- tools/dtg1_menu_editor.py.txt: by purrrock, from the dtg1-menu-editor project.
+- Names, trademarks, firmware, and vendor material described in the Work belong
+  to their owners.

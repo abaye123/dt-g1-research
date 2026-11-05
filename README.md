@@ -41,3 +41,7 @@ See the "Full tools inventory" section in the main notes. In short: PowerShell s
 Every command sent to the watch here was read-only or a mode change. No write or erase command was ever sent. Removing the preloaded images would require reflashing, which is unsafe without a recovery image for build 88318.
 
 כל פקודה שנשלחה לשעון כאן הייתה קריאה בלבד או מעבר-מצב. שום פקודת כתיבה או מחיקה לא נשלחה. מחיקת התמונות המובנות דורשת צריבה מחדש, שאינה בטוחה בלי קובץ שחזור לגרסה 88318.
+
+## License
+
+Personal, non-commercial use. Anything you share that is based on this project must be published as open source under the same license. Commercial use requires prior written permission. See [LICENSE](LICENSE), which also lists the third-party material it does not cover.
