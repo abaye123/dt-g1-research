@@ -3,7 +3,7 @@
   "name": "WhoseWatch",
   "icon": "/assets/icon.png",
   "versionName": "1.3.0",
-  "versionCode": 100,
+  "versionCode": 120,
   "features": [],
   "router": {
     "entry": "main",
