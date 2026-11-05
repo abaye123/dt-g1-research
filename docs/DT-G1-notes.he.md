@@ -178,14 +178,14 @@
 16. אישרנו עם `saveMenu` שהתפריט הפעיל זהה לקובץ שלנו. איפוס יצרן שמר את שינויי התפריט ואת המוזיקה.
 17. הסתרנו עוד שבעה פריטים: אנשי קשר, שיחות אחרונות, הודעות, חייגן, קורסי ספורט, עוזר קולי, מציאת הטלפון.
 18. התקנו את כלי הפיתוח הרשמי ב-`tools/glyphix-toolchain` (`glyphix-cli` 0.8.0-rc, `gx` v0.11.0). השעון מריץ Glyphix Nucleus v0.8.0-rc, כך שהגרסאות תואמות.
-19. בנינו את `apps/whose-watch`, מסך שמוצג כתמונת PNG אחת, כי בגופנים ב-`gui/fonts` אין עברית. הפונט הוא Varela Round ברישיון OFL.
+19. בנינו את `dt-g1-apps/whose-watch`, מסך שמוצג כתמונת PNG אחת, כי בגופנים ב-`gui/fonts` אין עברית. הפונט הוא Varela Round ברישיון OFL.
 20. החלפנו את `gui/apps/com.xfaith.woodenfish.pkg` באפליקציה שלנו ושינינו את רשומה 37 (WatchTips) למזהה `0xC82C`.
 21. האפליקציה נפתחה במסך שחור. בלוג הופיע בכל הפעלה `Failed to open package database: /gui/pkgs.db`.
 22. יצרנו `gui/pkgs.db` עם רישום אחד ל-`com.xfaith.woodenfish`. אחרי הפעלה מחדש האפליקציה הוצגה נכון ושאר התפריט עבד. הוכחת ההיתכנות הצליחה.
 
 ### איך בונים ומתקינים אפליקציה
 
-1. פרופיל המכשיר: `apps/whose-watch/dtg1-c175r.yml`, עם `vendorID: 0x0102` ו-`productID: 0x0005`, כמו בחבילות המקור. מעתיקים אותו ואת `image-convert-pal.scm` אל `%APPDATA%\glyphix\devices`.
+1. פרופיל המכשיר: `dt-g1-apps/whose-watch/dtg1-c175r.yml`, עם `vendorID: 0x0102` ו-`productID: 0x0005`, כמו בחבילות המקור. מעתיקים אותו ואת `image-convert-pal.scm` אל `%APPDATA%\glyphix\devices`.
 2. מוסיפים ל-`PATH` את תיקיית `bin` של כלי הפיתוח, ומריצים `gx build -d dtg1-c175r -f` בתיקיית האפליקציה.
 3. משתמשים בשם החבילה `com.xfaith.woodenfish`, כדי שרשומת התפריט הקבועה תעבוד, וכוללים `icon` ב-manifest.
 4. בוחרים Charging mode, מחברים, חושפים את הכוננים, מעתיקים את ה-`.pkg` אל `E:\gui\apps`, ומפעילים את השעון מחדש.
@@ -279,7 +279,7 @@
 - `glyphix-toolchain/` - כלי הפיתוח הרשמי של Glyphix (`gx` v0.11.0) מותקן מקומית, לבניית אפליקציות.
 - `adfu-dump/` - `adfu_read.py`, `adfu_dump_win.py`, ו-`pylibs` (pyusb, libusb-package, pyserial) לשאיבת ADFU.
 
-`apps/whose-watch/` - אפליקציית הוכחת ההיתכנות שלנו (מקור, פרופיל מכשיר `dtg1-c175r.yml`, `dist/com.xfaith.woodenfish.pkg`).
+`dt-g1-apps/whose-watch/` (מחוץ לריפו הזה, בריפו משלה) - אפליקציית הוכחת ההיתכנות שלנו (מקור, פרופיל מכשיר `dtg1-c175r.yml`, `dist/com.xfaith.woodenfish.pkg`).
 
 ## 13. איך להמשיך
 

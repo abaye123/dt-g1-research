@@ -184,14 +184,14 @@ To undo the menu change, copy `backup/menu_original/menu_list.cfg` back to `E:\c
 16. Confirmed with `saveMenu` that the running menu equals our file. A factory reset kept the menu changes and the music.
 17. Hid seven more entries: Contacts, Recents, Messages, DialPad, SportsCourses, MobileVoiceAssistant, FindDevice.
 18. Installed the official toolchain in `tools/glyphix-toolchain` (`glyphix-cli` 0.8.0-rc, `gx` v0.11.0). The watch runs Glyphix Nucleus v0.8.0-rc, so versions match.
-19. Built `apps/whose-watch`, a screen shown as one PNG, because the fonts in `gui/fonts` have no Hebrew. The font is Varela Round (OFL).
+19. Built `dt-g1-apps/whose-watch`, a screen shown as one PNG, because the fonts in `gui/fonts` have no Hebrew. The font is Varela Round (OFL).
 20. Replaced `gui/apps/com.xfaith.woodenfish.pkg` with our app and changed slot 37 (WatchTips) to AppID `0xC82C`.
 21. The app opened as a black screen. The log showed `Failed to open package database: /gui/pkgs.db` on every boot.
 22. Created `gui/pkgs.db` with one entry for `com.xfaith.woodenfish`. After a restart the app displayed correctly and the rest of the menu worked. Proof of concept succeeded.
 
 ### How to build and install an app
 
-1. Device profile: `apps/whose-watch/dtg1-c175r.yml`, with `vendorID: 0x0102` and `productID: 0x0005`, matching the stock packages. Copy it and `image-convert-pal.scm` to `%APPDATA%\glyphix\devices`.
+1. Device profile: `dt-g1-apps/whose-watch/dtg1-c175r.yml`, with `vendorID: 0x0102` and `productID: 0x0005`, matching the stock packages. Copy it and `image-convert-pal.scm` to `%APPDATA%\glyphix\devices`.
 2. Put the toolchain `bin` folder on `PATH`, then run `gx build -d dtg1-c175r -f` in the app folder.
 3. Use the package name `com.xfaith.woodenfish` so the hardcoded menu slot works, and include `icon` in the manifest.
 4. Set Charging mode, reconnect, mount the disks, copy the `.pkg` to `E:\gui\apps`, restart the watch.
@@ -285,7 +285,7 @@ Full log in `docs/firmware-analysis/adfu-dump-attempt.md`. Summary:
 - `glyphix-toolchain/` - the official Glyphix CLI (`gx` v0.11.0) installed locally, for building apps.
 - `adfu-dump/` - `adfu_read.py`, `adfu_dump_win.py`, and `pylibs` (pyusb, libusb-package, pyserial) for the ADFU dump.
 
-`apps/whose-watch/` - our proof-of-concept app (source, device profile `dtg1-c175r.yml`, `dist/com.xfaith.woodenfish.pkg`).
+`dt-g1-apps/whose-watch/` (outside this repository, its own repository) - our proof-of-concept app (source, device profile `dtg1-c175r.yml`, `dist/com.xfaith.woodenfish.pkg`).
 
 ## 13. How to continue
 
