@@ -34,3 +34,10 @@ desktop.ini
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# === Reverse-engineering inputs (third-party binaries, copyright; keep local only) ===
+reverse-engineering/**/*.apk
+reverse-engineering/**/*.bin
+reverse-engineering/**/*.dec
+reverse-engineering/**/*.pgl
+reverse-engineering/ref-firmware-88265/
