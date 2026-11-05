@@ -1,0 +1,39 @@
+<template>
+  <div class="page">
+    <text class="line heb">שלום עולם</text>
+    <text class="line heb">בדיקת עברית</text>
+    <text class="line eng">Hebrew test</text>
+  </div>
+</template>
+
+<style>
+  .page {
+    width: 466px;
+    height: 466px;
+    background-color: #000000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .line {
+    width: 466px;
+    text-align: center;
+    color: #FFFFFF;
+    font-size: 40px;
+  }
+
+  .heb {
+    direction: rtl;
+  }
+
+  .eng {
+    direction: ltr;
+  }
+</style>
+
+<script>
+  export default {
+    data: {}
+  }
+</script>
