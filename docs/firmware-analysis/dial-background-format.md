@@ -29,3 +29,14 @@ To set a custom background over USB: build the file as above and write it to
 `res/user_clock_bg.bin` and `res/user_clock_thumb.bin` on the hidden partition,
 then select the photo/custom dial on the watch. (Not yet verified end to end on
 the watch; test when connected.)
+
+## Clock overlay style (analog / digital)
+
+The analog-vs-digital clock drawn over the background is a selection among the
+installed clock faces. The watch stores them in `/1:/data/g_clock_ids` (an array
+of 4-byte clock IDs, e.g. 0x800d0903) and `g_clock_grp`; the current one is
+`g_clock_idx`. The firmware selects via `userSetIdleClockId(0x...)` and has an
+analog path `onPaintPointerDial ... mInfo.style`. There is no documented USB AT
+command to set it, so for now the clock style is chosen on the watch itself (or
+later over BLE). Our tool sets the background image; the overlay style is picked
+on the watch when selecting the custom photo face.
