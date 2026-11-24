@@ -41,3 +41,6 @@ reverse-engineering/**/*.bin
 reverse-engineering/**/*.dec
 reverse-engineering/**/*.pgl
 reverse-engineering/ref-firmware-88265/
+
+# === Raw captures: private account and phone data, never commit ===
+captures/
